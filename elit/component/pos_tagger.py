@@ -52,7 +52,6 @@ class POSLexicon(NLPLexiconMapper):
         super().__init__(w2v, f2v)
         self.a2v: NLPEmbedding = NLPEmbedding(a2v, 'word', 'a2v') if a2v else None
         self.pos_zeros = np.zeros((output_size,)).astype('float32')
-        print (self.pos_zeros)
 
 
 class POSState(NLPState):
@@ -108,9 +107,6 @@ class POSState(NLPState):
         if self.lex.w2v: fs.append(self.lex.w2v.get(node))
         if self.lex.f2v: fs.append(self.lex.f2v.get(node))
         if self.lex.a2v: fs.append(self.lex.a2v.get(node))
-        # print ("FEATURE SHAPE: ", np.asarray(fs[0]).shape)
-        # print ("FEATURE SHAPE: ", np.asarray(fs[1]).shape)
-        # print ("FEATURE SHAPE: ", np.asarray(fs[2]).shape)
         return fs
 
 
@@ -225,7 +221,7 @@ def main():
     f2v = fasttext.load_model(args.f2v) if args.f2v else None
     a2v = KeyedVectors.load_word2vec_format(args.a2v, binary=True) if args.a2v else None
 
-    lexicon = POSLexicon(w2v=w2v, f2v=f2v, a2v=a2v)
+    lexicon = POSLexicon(w2v=w2v, f2v=f2v, a2v=a2v, output_size=args.output_size)
 
     # model
     model = POSModel(feature_context=args.feature_context, batch_size=64, w2v_dim=200)

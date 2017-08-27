@@ -236,7 +236,7 @@ class NLPModel(metaclass=ABCMeta):
         :return:
         :rtype: np.array
         """
-        return self.mxmod.predict(batches)[0].asnumpy()
+        return self.mxmod.predict(batches).asnumpy()
 
     def train(self, trn_graphs, dev_graphs, lexicon, num_steps=2000, bagging_ratio=0.63,
               initializer=mx.initializer.Normal(0.01), arg_params=None, aux_params=None,

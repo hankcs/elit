@@ -135,7 +135,7 @@ def argparse_ffnn(parser: argparse.ArgumentParser):
                       help='(size, act type, dropout rate) for hidden layers')
     ffnn.add_argument('--input_dropout', type=float, metavar='float', default=0,
                       help='dropout rate for input layer')
-    ffnn.add_argument('--output_size', type=int, metavar='int', default=2,
+    ffnn.add_argument('--output_size', type=int, metavar='int', default=50,
                       help='size of the output layer')
 
 
