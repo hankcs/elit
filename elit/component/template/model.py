@@ -23,6 +23,7 @@ from random import shuffle
 
 import mxnet as mx
 import numpy as np
+import sys
 
 __author__ = 'Jinho D. Choi'
 
@@ -46,7 +47,6 @@ class NLPModel(metaclass=ABCMeta):
         self.mxmod = None
         self.state = state
         self.batch_size = batch_size
-        self.pool_feature_vector = None
 
     # ============================== Label ==============================
 
@@ -117,11 +117,17 @@ class NLPModel(metaclass=ABCMeta):
         """
         xs_0 = [[self.x(state)[0]] for state in states]
         xs_1 = [[self.x(state)[1]] for state in states]
+        xs_2 = [[self.x(state)[2]] for state in states]
+
         out_0 = np.stack(xs_0, axis=0)
         out_1 = np.stack(xs_1, axis=0)
+        out_2 = np.stack(xs_2, axis=0)
+
         out_0 = np.squeeze(out_0, axis=1)
         out_1 = np.squeeze(out_1, axis=1)
-        return [out_0, out_1]
+        out_2 = np.squeeze(out_2, axis=1)
+
+        return [out_0, out_1, out_2]
 
     def train_instances(self, states, num_threads=1):
         """
@@ -151,10 +157,12 @@ class NLPModel(metaclass=ABCMeta):
 
         if num_threads == 1:
             xs, ys = instances()
-            xs_1, xs_2 = zip(*xs)
+            xs_1, xs_2, xs_3 = zip(*xs)
             x1 = np.stack(xs_1, axis=0)
             x2 = np.stack(xs_2, axis=0)
-            data = [x1, x2]
+            x3 = np.stack(xs_3, axis=0)
+
+            data = [x1, x2, x3]
             label = np.array([self.add_label(y) for y in ys])
             return data, label
         pool = ThreadPoolExecutor(num_threads)
@@ -208,16 +216,6 @@ class NLPModel(metaclass=ABCMeta):
 
                 # extract pooled layer feature vector.
                 # [0] index output is softmax layer output
-                temp_symbol_1 = self.mxmod.get_outputs()[1]
-                fea = temp_symbol_1.asnumpy()
-
-                # create combined feature vector
-                if self.pool_feature_vector is None:
-                    self.pool_feature_vector = fea
-                else:
-                    self.pool_feature_vector = np.concatenate((self.pool_feature_vector, fea),
-                                                              axis=0)
-
                 self.mxmod.backward()
                 self.mxmod.update()
 
@@ -365,5 +363,5 @@ class NLPModel(metaclass=ABCMeta):
         :rtype: mx.io.DataIter
         """
         batch_size = len(data[0]) if len(data[0]) < batch_size else batch_size
-        return mx.io.NDArrayIter(data={'data_f2v': data[0], 'data_a2v': data[1]}, label=label,
+        return mx.io.NDArrayIter(data={'data_f2v': data[0], 'data_a2v': data[1], 'data_pos': data[2]}, label=label,
                                  batch_size=batch_size, shuffle=False)
